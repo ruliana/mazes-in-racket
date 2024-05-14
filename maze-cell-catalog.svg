@@ -1,0 +1,118 @@
+
+<svg version="1.1" width="40" height="768" xmlns="http://www.w3.org/2000/svg">
+  <style>path {fill: none; stroke: green; stroke-width: 1; stroke-linejoin: round}</style>
+  <g transform="scale(4, 4)">
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="10" height="10" fill="lightblue" stroke="transparent">
+      </rect>
+      <path d="M 0 1 h 1 v -1 M 10 1 h -1 v -1 M 0 9 h 1 v 1 M 10 9 h -1 v 1">
+      </path>
+      <text x="5" y="5.5" dominant-baseline="middle" text-anchor="middle" font-size="5" font-family="Monospace">0</text>
+    </g>
+    <g transform="translate(0, 12)">
+      <rect x="0" y="0" width="10" height="10" fill="lightblue" stroke="transparent">
+      </rect>
+      <path d="M 0 1 h 10 M 0 9 h 1 v 1 M 10 9 h -1 v 1">
+      </path>
+      <text x="5" y="5.5" dominant-baseline="middle" text-anchor="middle" font-size="5" font-family="Monospace">1</text>
+    </g>
+    <g transform="translate(0, 24)">
+      <rect x="0" y="0" width="10" height="10" fill="lightblue" stroke="transparent">
+      </rect>
+      <path d="M 1 0 v 10 M 10 1 h -1 v -1 M 10 9 h -1 v 1">
+      </path>
+      <text x="5" y="5.5" dominant-baseline="middle" text-anchor="middle" font-size="5" font-family="Monospace">2</text>
+    </g>
+    <g transform="translate(0, 36)">
+      <rect x="0" y="0" width="10" height="10" fill="lightblue" stroke="transparent">
+      </rect>
+      <path d="M 1 10 v -9 h 9 M 10 9 h -1 v 1">
+      </path>
+      <text x="5" y="5.5" dominant-baseline="middle" text-anchor="middle" font-size="5" font-family="Monospace">3</text>
+    </g>
+    <g transform="translate(0, 48)">
+      <rect x="0" y="0" width="10" height="10" fill="lightblue" stroke="transparent">
+      </rect>
+      <path d="M 0 9 h 10 M 0 1 h 1 v -1 M 10 1 h -1 v -1">
+      </path>
+      <text x="5" y="5.5" dominant-baseline="middle" text-anchor="middle" font-size="5" font-family="Monospace">4</text>
+    </g>
+    <g transform="translate(0, 60)">
+      <rect x="0" y="0" width="10" height="10" fill="lightblue" stroke="transparent">
+      </rect>
+      <path d="M 0 9 h 10 M 0 1 h 10">
+      </path>
+      <text x="5" y="5.5" dominant-baseline="middle" text-anchor="middle" font-size="5" font-family="Monospace">5</text>
+    </g>
+    <g transform="translate(0, 72)">
+      <rect x="0" y="0" width="10" height="10" fill="lightblue" stroke="transparent">
+      </rect>
+      <path d="M 1 0 v 9 h 9 M 10 1 h -1 v -1">
+      </path>
+      <text x="5" y="5.5" dominant-baseline="middle" text-anchor="middle" font-size="5" font-family="Monospace">6</text>
+    </g>
+    <g transform="translate(0, 84)">
+      <rect x="0" y="0" width="10" height="10" fill="lightblue" stroke="transparent">
+      </rect>
+      <path d="M 10 1 h -9 v 8 h 9">
+      </path>
+      <text x="5" y="5.5" dominant-baseline="middle" text-anchor="middle" font-size="5" font-family="Monospace">7</text>
+    </g>
+    <g transform="translate(0, 96)">
+      <rect x="0" y="0" width="10" height="10" fill="lightblue" stroke="transparent">
+      </rect>
+      <path d="M 9 0 v 10 M 0 1 h 1 v -1 M 0 9 h 1 v 1">
+      </path>
+      <text x="5" y="5.5" dominant-baseline="middle" text-anchor="middle" font-size="5" font-family="Monospace">8</text>
+    </g>
+    <g transform="translate(0, 108)">
+      <rect x="0" y="0" width="10" height="10" fill="lightblue" stroke="transparent">
+      </rect>
+      <path d="M 0 1 h 9 v 9 M 0 9 h 1 v 1">
+      </path>
+      <text x="5" y="5.5" dominant-baseline="middle" text-anchor="middle" font-size="5" font-family="Monospace">9</text>
+    </g>
+    <g transform="translate(0, 120)">
+      <rect x="0" y="0" width="10" height="10" fill="lightblue" stroke="transparent">
+      </rect>
+      <path d="M 1 0 v 10 M 9 0 v 10">
+      </path>
+      <text x="5" y="5.5" dominant-baseline="middle" text-anchor="middle" font-size="5" font-family="Monospace">10</text>
+    </g>
+    <g transform="translate(0, 132)">
+      <rect x="0" y="0" width="10" height="10" fill="lightblue" stroke="transparent">
+      </rect>
+      <path d="M 1 10 v -9 h 8 v 9">
+      </path>
+      <text x="5" y="5.5" dominant-baseline="middle" text-anchor="middle" font-size="5" font-family="Monospace">11</text>
+    </g>
+    <g transform="translate(0, 144)">
+      <rect x="0" y="0" width="10" height="10" fill="lightblue" stroke="transparent">
+      </rect>
+      <path d="M 0 9 h 9 v -9 M 0 1 h 1 v -1">
+      </path>
+      <text x="5" y="5.5" dominant-baseline="middle" text-anchor="middle" font-size="5" font-family="Monospace">12</text>
+    </g>
+    <g transform="translate(0, 156)">
+      <rect x="0" y="0" width="10" height="10" fill="lightblue" stroke="transparent">
+      </rect>
+      <path d="M 0 1 h 9 v 8 h -9">
+      </path>
+      <text x="5" y="5.5" dominant-baseline="middle" text-anchor="middle" font-size="5" font-family="Monospace">13</text>
+    </g>
+    <g transform="translate(0, 168)">
+      <rect x="0" y="0" width="10" height="10" fill="lightblue" stroke="transparent">
+      </rect>
+      <path d="M 1 0 v 9 h 8 v -9">
+      </path>
+      <text x="5" y="5.5" dominant-baseline="middle" text-anchor="middle" font-size="5" font-family="Monospace">14</text>
+    </g>
+    <g transform="translate(0, 180)">
+      <rect x="0" y="0" width="10" height="10" fill="lightblue" stroke="transparent">
+      </rect>
+      <path d="M 1 1 h 8 v 8 h -8 z">
+      </path>
+      <text x="5" y="5.5" dominant-baseline="middle" text-anchor="middle" font-size="5" font-family="Monospace">15</text>
+    </g>
+  </g>
+</svg>
