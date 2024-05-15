@@ -7,6 +7,7 @@
   racket/generic
   racket/match
   racket/random
+  racket/generator
   racket/trace
   threading
   data/collection
@@ -31,6 +32,9 @@
 
 (define (probability? n)
   (< (random) n ))
+
+(define (clip minimum x maximum)
+  (max minimum (min maximum x)))
 
 (define-syntax (define* stx)
   (syntax-parse stx
@@ -168,7 +172,7 @@
 
 
 (define (svg-maze mz)
-  (var cell-size 10 ;; Must be 10 because that's how I draw them in svg
+  (var cell-size 10 ;; Must be 10 because that's how I drew them in svg
        margin 2
        scale 2
        rows (maze-rows mz)
@@ -199,16 +203,82 @@
     (λ () (~> mz svg-maze svg-show))
     #:exists 'replace))
 
-;; Sidewinder algorithm
 
-(define (sidewinder mz #:side-probability [side-probability 0.5])
+;; ====================
+;; Sidewinder algorithm
+;; ====================
+
+;; Block carvers for sidewinder algorithm
+;; A block carver is a function that takes a maze, a block and a carver
+;; and carves the block with the carver. The block is a list of positions
+;; and the carver is a function that takes a maze and a position and carves
+;; the maze at that position.
+(define ((block-carver-random carver) mz block)
+  (if (empty? block) mz
+      (let ([random-pos (random-ref block)])
+        (set mz random-pos carver))))
+
+(define ((block-carver-fixed carver index) mz block)
+  (var abs-index (if (negative? index)
+                   (+ (length block) index)
+                   index)
+       i (clip 0 abs-index (sub1 (length block)))
+       p (ref (reverse block) i))
+  (if (empty? block) mz
+      (set mz p carver)))
+
+(define ((block-carver-relative carver ratio) mz block)
+  (if (empty? block) mz
+      (let ([index (inexact->exact (ceiling (* ratio (length block))))])
+        ((block-carver-fixed carver (sub1 index)) mz block))))
+
+(define ((block-carver-no-vertical carver wall-checker?) mz block)
+  (if (empty? block) mz
+      (let loop ([attempts 3])
+        (var random-pos (random-ref block)
+             cell (get mz random-pos))
+        (if (or (zero? attempts) (wall-checker? cell))
+            (set mz random-pos carver)
+            (loop (sub1 attempts))))))
+
+;; Parameter: which block carver to use
+(define sidewinder-block-carver
+  (make-parameter (block-carver-random carve-south)))
+
+
+;; Side conditions for sidewinder algorithm
+;; A side condition is a function that takes a maze, a position and a block
+;; and returns a boolean indicating whether to continue carving in that direction
+(define ((carve-condition-always) mz p block)
+  #t)
+
+(define ((carve-condition-random probability) mz p block)
+  (probability? probability))
+
+(define ((carve-condition-row-alternate . conditions) mz p block)
+  (var row (pos-row p)
+       index (modulo row (length conditions))
+       condition? (list-ref conditions index))
+  (condition? mz p block))
+
+(define ((carve-condition-odd probability) mz p block)
+  (or (probability? probability)
+      (odd? (length block))))
+
+(define ((carve-condition-even probability) mz p block)
+  (or (probability? probability)
+      (even? (length block))))
+
+;; Parameter: probability of continue carving
+(define sidewinder-side-condition (make-parameter (carve-condition-random 0.5)))
+
+
+(define (sidewinder mz)
   ;; Carve east with a certain probability
   ;; If not carve east, carve south in a random cell of the current block
   ;; Start a new block
-  (define (carving-south mz block)
-    (if (empty? block) mz
-        (let ([random-pos (random-ref block)])
-          (set mz random-pos carve-south))))
+  (var block-carver (sidewinder-block-carver)
+       continue-carving? (sidewinder-side-condition))
   (define (carve-whole-line mz)
     (for/fold ([mz mz])
               ([c (in-range (last-col mz))])
@@ -224,21 +294,21 @@
       ;; and return
       [(at-last-row? mz p)
           (carve-whole-line mz)]
-      ;; If last column, carve a random block south
+      ;; If last column, carve the block south
       ;; and next line
       [(at-last-col? mz p)
-       (loop (carving-south mz new-block)
+       (loop (block-carver mz new-block)
              next-line
              (list))]
-      ;; With a given probability, carve east
-      [(probability? side-probability)
+      ;; Given a condition, carve east
+      [(continue-carving? mz p block)
        (loop (set mz p carve-east)
              right
              new-block)]
       ;; Otherwise, carve south in a random cell of
       ;; the accumulated block so far
       [else
-       (loop (carving-south mz new-block)
+       (loop (block-carver mz new-block)
              right
              (list))])))
           
@@ -274,8 +344,15 @@
   (command-line
     #:program "maze"
     #:args (filename row col side-probability)
-    (var mz (make-maze (string->number row) (string->number col))
-         rslt (sidewinder mz #:side-probability (string->number side-probability)))
-    (save-svg-maze filename rslt)))
+    (parameterize ([sidewinder-block-carver
+                    (block-carver-no-vertical carve-south wall-north?)]
+                   [sidewinder-side-condition
+                    (carve-condition-row-alternate
+                     (carve-condition-even (string->number side-probability))
+                     (carve-condition-even (string->number side-probability))
+                     (carve-condition-always))])
+      (var mz (make-maze (string->number row) (string->number col))
+           rslt (sidewinder mz))
+      (save-svg-maze filename rslt))))
     
     
