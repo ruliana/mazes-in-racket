@@ -45,12 +45,15 @@
 
 ;; === Maze ===
 
-(struct pos (row col) #:transparent)
+(define (pos r c) (make-rectangular c r))
 
-(define (up p) (struct-copy pos p [row (~> p pos-row sub1)]))
-(define (dn p) (struct-copy pos p [row (~> p pos-row add1)]))
-(define (lf p) (struct-copy pos p [col (~> p pos-col sub1)]))
-(define (rg p) (struct-copy pos p [col (~> p pos-col add1)]))
+(define row imag-part)
+(define col real-part)
+
+(define (lf p) (sub1 p))
+(define (rg p) (add1 p))
+(define (up p) (+ p 0-1i))
+(define (dn p) (+ p 0+1i))
 
 ;; Grid is a vector of integers, each bit represents a wall (1) or an opening (0)
 ;; The bit order is right ot left, counter-clockwise, strating with north:
@@ -62,7 +65,7 @@
 (define cell-closed #b1111)
 (define cell-hollow #b0000)
 
-(struct maze (pos content)  #:transparent)
+(struct maze (dim content)  #:transparent)
 
 (define* get
   
@@ -102,12 +105,10 @@
   (maze (pos rows cols) starting-vec))
 
 (define (maze-rows mz)
-  (var (maze (pos r _) _) mz)
-  r)
+  (~> mz maze-dim row))
 
 (define (maze-cols mz)
-  (var (maze (pos _ c) _) mz)
-  c)
+  (~> mz maze-dim col))
 
 (define (last-row mz)
   (sub1 (maze-rows mz)))
@@ -116,10 +117,11 @@
   (sub1 (maze-cols mz)))
 
 (define (at-last-row? mz p)
-  (= (pos-row p) (last-row mz)))
+  (= (row p) (last-row mz)))
 
 (define (at-last-col? mz p)
-  (= (pos-col p) (last-col mz)))
+  (= (col p) (last-col mz)))
+
 
 (define ((wall-checker wall-pos) cell)
   (and cell (bitwise-bit-set? cell wall-pos)))
@@ -149,16 +151,14 @@
 
 
 (define (->index mz p)
-  (var (pos row col) p
-       (maze maxes v) mz
-       (pos max-row max-col) maxes
-       valid? (and (< -1 row max-row)
-                   (< -1 col max-col)))
-  (and valid? (+ col (* row max-col))))
+  (var valid? (and (< -1 (row p) (maze-rows mz))
+                   (< -1 (col p) (maze-cols mz))))
+  (and valid? (+ (col p) (* (row p) (maze-cols mz)))))
 
 
 (define (print-maze mz)
-  (var (maze (pos max-rows max-cols) _) mz)
+  (var max-rows (maze-rows mz)
+       max-cols (maze-cols mz))
   (displayln (make-string (add1 (* 3 max-cols)) #\-))
   (for ([r max-rows])
     (define x
@@ -256,8 +256,8 @@
   (probability? probability))
 
 (define ((carve-condition-row-alternate . conditions) mz p block)
-  (var row (pos-row p)
-       index (modulo row (length conditions))
+  (var r (row p)
+       index (modulo r (length conditions))
        condition? (list-ref conditions index))
   (condition? mz p block))
 
@@ -287,7 +287,7 @@
              [p (pos 0 0)]
              [block (list)])
     (var new-block (conj block p)
-         next-line (pos (add1 (pos-row p)) 0)
+         next-line (pos (add1 (row p)) 0)
          right (rg p))
     (cond
       ;; If last row, carve the whole line east
