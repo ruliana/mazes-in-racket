@@ -8,6 +8,7 @@
   racket/match
   racket/random
   racket/generator
+  racket/set
   racket/trace
   threading
   data/collection
@@ -311,7 +312,58 @@
        (loop (block-carver mz new-block)
              right
              (list))])))
-          
+
+
+(define (sidewinder-around mz)
+  (define (in-bound? mz p)
+    (and (< -1 (row p) (maze-rows mz))
+         (< -1 (col p) (maze-cols mz))))
+  (define out-bound? (negate in-bound?))
+  (define (at-center? mz p)
+    (and (= (row p) (quotient (maze-rows mz) 2))
+         (= (col p) (quotient (maze-cols mz) 2))))
+  (define (visited? visited p)
+    (set-member? visited p))
+  (define (turn-right direction)
+    (var turner (hasheq
+                 rg dn
+                 dn lf
+                 lf up
+                 up rg))
+    (ref turner direction))
+  (define (carve mz p direction)
+    (var carver (hasheq
+                  rg carve-east
+                  dn carve-south
+                  lf carve-west
+                  up carve-north))
+    (set mz p (ref carver direction)))
+  (var start (pos 0 0))
+  (let loop ([mz mz]
+             [p start]
+             [direction rg]
+             [block (list start)]
+             [visited (seteq start)])
+    (cond
+      [(at-center? mz p) mz]
+      [(or (out-bound? mz (direction p))
+           (visited? visited (direction p)))
+       (loop mz p (turn-right direction) block visited)]
+      [(probability? 1.0)
+       (loop (carve mz p direction)
+             (direction p)
+             direction
+             (conj block (direction p))
+             (conj visited (direction p)))]
+      [else #t
+       ;; TODO: carve-to-center
+       #;(loop (carve-to-center mz block)
+             (direction p)
+             direction
+             (list (direction p))
+             (conj visited (direction p)))])))
+      
+    
              
   
 (module+ test
@@ -347,7 +399,8 @@
     (parameterize ([sidewinder-block-carver
                     (block-carver-no-vertical carve-south wall-north?)]
                    [sidewinder-side-condition
-                    (carve-condition-row-alternate
+                    (carve-condition-random (string->number side-probability))
+                    #;(carve-condition-row-alternate
                      (carve-condition-even (string->number side-probability))
                      (carve-condition-even (string->number side-probability))
                      (carve-condition-always))])
