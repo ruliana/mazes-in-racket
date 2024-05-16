@@ -397,9 +397,10 @@
     #:program "maze"
     #:args (filename row col side-probability)
     (parameterize ([sidewinder-block-carver
-                    (block-carver-no-vertical carve-south wall-north?)]
+                    (block-carver-relative carve-south 0.5)
+                    #;(block-carver-no-vertical carve-south wall-north?)]
                    [sidewinder-side-condition
-                    (carve-condition-random (string->number side-probability))
+                    (carve-condition-odd (string->number side-probability))
                     #;(carve-condition-row-alternate
                      (carve-condition-even (string->number side-probability))
                      (carve-condition-even (string->number side-probability))
