@@ -22,6 +22,9 @@
 
 
 ;; Utilities and redefinitions
+;; These utility functions and redefinitions are used to simplify operations
+;; throughout the code, providing shorthand and more efficient ways to handle
+;; common tasks like vector manipulation and probability checks.
 (define (make-immutable-vector size initial-element)
   (vector->immutable-vector
    (make-vector size initial-element)))
@@ -45,8 +48,14 @@
            [(list elems ...) body ...] ...))]))  
 
 ;; === Maze ===
+;; The maze is represented as a grid of cells, each with walls that can be
+;; opened or closed. The maze generation logic is built around manipulating
+;; these walls to create paths.
 
 (define (pos r c) (make-rectangular c r))
+;; Positions in the maze are represented as complex numbers, where the real
+;; part is the column and the imaginary part is the row. This allows for
+;; concise arithmetic operations to navigate the maze.
 
 (define row imag-part)
 (define col real-part)
@@ -57,7 +66,9 @@
 (define (dn p) (+ p 0+1i))
 
 ;; Grid is a vector of integers, each bit represents a wall (1) or an opening (0)
-;; The bit order is right ot left, counter-clockwise, strating with north:
+;; The bit order is right to left, counter-clockwise, starting with north:
+;; This encoding allows for efficient manipulation of cell walls using bitwise
+;; operations, which is crucial for the maze generation process.
 ;; North = 1110 = 14
 ;; West = 1101 = 13
 ;; South = 1011 = 11
@@ -67,8 +78,13 @@
 (define cell-hollow #b0000)
 
 (struct maze (dim content)  #:transparent)
+;; The maze structure holds the dimensions and content of the maze, where
+;; content is a vector representing the state of each cell's walls.
 
 (define* get
+;; Retrieves the value of a cell in the maze, using either a position or
+;; row and column indices. This function abstracts the complexity of
+;; accessing the maze's underlying vector representation.
   
   [(mz pos)
    (var i (->index mz pos)
@@ -80,6 +96,10 @@
 
 
 (define* set
+;; Updates the value of a cell in the maze, with the ability to modify
+;; adjacent cells based on the current cell's state. This function is
+;; central to the maze generation process, as it allows for dynamic
+;; carving and blocking of paths.
 
   [(mz pos value)
    (define val (if (procedure? value)
@@ -102,6 +122,8 @@
    (set mz (pos row col) value)])
 
 (define (make-maze rows cols)
+;; Initializes a new maze with all cells closed. This function sets up
+;; the initial state of the maze before any paths are carved.
   (var starting-vec (make-immutable-vector (* rows cols) cell-closed))
   (maze (pos rows cols) starting-vec))
 
@@ -125,6 +147,9 @@
 
 
 (define ((wall-checker wall-pos) cell)
+;; Checks if a specific wall is present in a cell. This is used to
+;; determine the current state of a cell's walls during the maze
+;; generation process.
   (and cell (bitwise-bit-set? cell wall-pos)))
 
 (define wall-north? (wall-checker 0))
@@ -134,6 +159,8 @@
 
 
 (define ((carver template) cell)
+;; Carves a path by removing specific walls from a cell. This function
+;; is used to create openings in the maze, allowing for path creation.
   (and cell (bitwise-and template cell)))
 
 (define carve-north (carver #b1110))
@@ -143,6 +170,8 @@
 
 
 (define ((blocker template) cell)
+;; Blocks a path by adding specific walls to a cell. This function is
+;; used to close off paths, ensuring that the maze has a defined structure.
   (and cell (bitwise-ior template cell)))
 
 (define block-north (blocker #b0001))
@@ -158,6 +187,9 @@
 
 
 (define (print-maze mz)
+;; Prints a textual representation of the maze, using characters to
+;; represent walls and openings. This is useful for debugging and
+;; visualizing the maze's structure.
   (var max-rows (maze-rows mz)
        max-cols (maze-cols mz))
   (displayln (make-string (add1 (* 3 max-cols)) #\-))
@@ -173,6 +205,9 @@
 
 
 (define (svg-maze mz)
+;; Generates an SVG representation of the maze, allowing for a visual
+;; depiction of the maze's structure. This is useful for exporting and
+;; sharing the maze in a graphical format.
   (var cell-size 10 ;; Must be 10 because that's how I drew them in svg
        margin 2
        scale 2
@@ -210,6 +245,9 @@
 ;; ====================
 
 ;; Block carvers for sidewinder algorithm
+;; These functions define different strategies for carving paths in the maze
+;; using the Sidewinder algorithm. Each strategy has its own approach to
+;; selecting which cells to carve, affecting the maze's final structure.
 ;; A block carver is a function that takes a maze, a block and a carver
 ;; and carves the block with the carver. The block is a list of positions
 ;; and the carver is a function that takes a maze and a position and carves
@@ -248,6 +286,9 @@
 
 
 ;; Side conditions for sidewinder algorithm
+;; These functions define conditions under which the carving process should
+;; continue or stop. They introduce variability and randomness into the maze
+;; generation, ensuring that each maze is unique.
 ;; A side condition is a function that takes a maze, a position and a block
 ;; and returns a boolean indicating whether to continue carving in that direction
 (define ((carve-condition-always) mz p block)
@@ -275,6 +316,9 @@
 
 
 (define (sidewinder mz)
+;; Implements the Sidewinder algorithm to generate a maze. This algorithm
+;; carves paths by moving east with a certain probability and carving south
+;; at random intervals, creating a maze with a distinct pattern.
   ;; Carve east with a certain probability
   ;; If not carve east, carve south in a random cell of the current block
   ;; Start a new block
@@ -315,15 +359,14 @@
 
 
 (define (sidewinder-around mz)
+;; An alternative maze generation approach that carves paths around the
+;; perimeter of the maze. This function explores different carving strategies
+;; to create varied maze structures.
   (define (in-bound? mz p)
     (and (< -1 (row p) (maze-rows mz))
          (< -1 (col p) (maze-cols mz))))
   (define out-bound? (negate in-bound?))
-  (define (at-center? mz p)
-    (and (= (row p) (quotient (maze-rows mz) 2))
-         (= (col p) (quotient (maze-cols mz) 2))))
-  (define (visited? visited p)
-    (set-member? visited p))
+  (define (visited? v e) (member e v))
   (define (turn-right direction)
     (var turner (hasheq
                  rg dn
@@ -338,30 +381,36 @@
                   lf carve-west
                   up carve-north))
     (set mz p (ref carver direction)))
+  (define (carve-to-right mz block)
+    (var (list p dir) (random-ref block))
+    (carve mz p (turn-right dir)))
   (var start (pos 0 0))
   (let loop ([mz mz]
              [p start]
              [direction rg]
-             [block (list start)]
-             [visited (seteq start)])
+             [block (list (list start rg))]
+             [visited (list start)])
+    (var next-pos (direction p)
+         next-cell-dir (list next-pos direction))
     (cond
-      [(at-center? mz p) mz]
-      [(or (out-bound? mz (direction p))
-           (visited? visited (direction p)))
-       (loop mz p (turn-right direction) block visited)]
-      [(probability? 1.0)
+      ;; All visited
+      [(= (length visited) (length (maze-content mz)))
+       mz]
+      [(or (out-bound? mz next-pos)
+           (visited? visited next-pos))
+       (loop mz p (turn-right direction) (rest block) visited)]
+      [(probability? 0.8)
        (loop (carve mz p direction)
-             (direction p)
+             next-pos
              direction
-             (conj block (direction p))
-             (conj visited (direction p)))]
+             (conj block next-cell-dir)
+             (conj visited next-pos))]
       [else #t
-       ;; TODO: carve-to-center
-       #;(loop (carve-to-center mz block)
-             (direction p)
+       (loop (carve-to-right mz block)
+             next-pos
              direction
-             (list (direction p))
-             (conj visited (direction p)))])))
+             (list next-cell-dir)
+             (conj visited next-pos))])))
       
     
              
@@ -392,6 +441,9 @@
 
 
 (module+ main
+;; Command-line interface for generating and saving a maze as an SVG file.
+;; This allows users to specify maze dimensions and carving probabilities,
+;; providing flexibility in the maze generation process.
   (require racket/cmdline)
   (command-line
     #:program "maze"
@@ -408,5 +460,3 @@
       (var mz (make-maze (string->number row) (string->number col))
            rslt (sidewinder mz))
       (save-svg-maze filename rslt))))
-    
-    
